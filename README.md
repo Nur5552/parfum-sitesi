@@ -22,8 +22,8 @@ Bu proje, kullanıcıların tercihlerine göre parfüm önerileri sunan bir web 
 
 1. Projeyi klonlayın:
 ```bash
-git clone https://github.com/yourusername/parfum-oneri.git
-cd parfum-oneri
+git clone https://github.com/Nur5552/parfum-sitesi
+cd parfum-sitesi
 ```
 
 2. Bağımlılıkları yükleyin:
@@ -61,12 +61,3 @@ npm start
 - Password hashing
 - XSS protection
 - CORS configuration
-
-## Lisans
-
-MIT
-
-## İletişim
-
-Proje sahibi: [Adınız]
-E-posta: [E-posta adresiniz] 
