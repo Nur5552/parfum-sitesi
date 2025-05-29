@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Kayıt Ol</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .error-message {
+            color: red;
+            margin-bottom: 10px;
+            display: none;
+        }
+        .success-message {
+            color: green;
+            margin-bottom: 10px;
+            display: none;
+        }
+        .login-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .login-link a {
+            color: #4CAF50;
+            text-decoration: none;
+        }
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h2>Kayıt Ol</h2>
+    <div id="error-message" class="error-message"></div>
+    <div id="success-message" class="success-message"></div>
+    <form id="registerForm" onsubmit="return handleRegister(event)">
+        <div class="form-group">
+            <label>Kullanıcı Adı:</label>
+            <input type="text" id="kullaniciAdi" required minlength="3">
+        </div>
+        <div class="form-group">
+            <label>Şifre:</label>
+            <input type="password" id="sifre" required minlength="6">
+        </div>
+        <div class="form-group">
+            <label>Şifre Tekrar:</label>
+            <input type="password" id="sifreTekrar" required minlength="6">
+        </div>
+        <button type="submit">Kayıt Ol</button>
+    </form>
+
+    <div class="login-link">
+        Zaten hesabınız var mı? <a href="/login.html">Giriş Yapın</a>
+    </div>
+
+    <script>
+        async function handleRegister(event) {
+            event.preventDefault();
+            
+            const errorMessage = document.getElementById('error-message');
+            const successMessage = document.getElementById('success-message');
+            errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
+
+            const kullaniciAdi = document.getElementById('kullaniciAdi').value;
+            const sifre = document.getElementById('sifre').value;
+            const sifreTekrar = document.getElementById('sifreTekrar').value;
+
+            if (sifre !== sifreTekrar) {
+                errorMessage.textContent = 'Şifreler eşleşmiyor!';
+                errorMessage.style.display = 'block';
+                return false;
+            }
+
+            try {
+                const response = await fetch('/api/kayit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ kullaniciAdi, sifre })
+                });
+
+                const data = await response.json();
+
+                if (response.status === 201) {
+                    successMessage.textContent = 'Kayıt başarılı! Giriş sayfasına yönlendiriliyorsunuz...';
+                    successMessage.style.display = 'block';
+                    // Başarılı kayıttan sonra giriş sayfasına yönlendir
+                    setTimeout(() => {
+                        window.location.href = '/login.html';
+                    }, 2000);
+                } else {
+                    errorMessage.textContent = data.hata || 'Kayıt işlemi başarısız!';
+                    errorMessage.style.display = 'block';
+                }
+            } catch (error) {
+                errorMessage.textContent = 'Bir hata oluştu. Lütfen tekrar deneyin.';
+                errorMessage.style.display = 'block';
+            }
+            return false;
+        }
+    </script>
+</body>
+</html> 

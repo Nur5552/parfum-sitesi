@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Parfüm Öneri Paneli</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h2>Parfüm Öneri Formu</h2>
+    <form id="parfumForm">
+      <label for="cinsiyet">Cinsiyet:</label>
+      <select id="cinsiyet" required>
+        <option value="">Seçiniz</option>
+        <option value="erkek">Erkek</option>
+        <option value="kadın">Kadın</option>
+      </select>
+
+      <label for="koku">Parfüm Türü:</label>
+      <select id="koku" required>
+        <option value="">Seçiniz</option>
+        <option value="odunsu">Odunsu</option>
+        <option value="çiçeksi">Çiçeksi</option>
+        <option value="baharatlı">Baharatlı</option>
+        <option value="fresh">Fresh</option>
+      </select>
+
+      <label for="kıyafet">Kıyafet Türü:</label>
+      <select id="kıyafet" required>
+        <option value="">Seçiniz</option>
+        <option value="kumaş">Kumaş</option>
+        <option value="yünlü">Yünlü</option>
+        <option value="deri">Deri</option>
+      </select>
+
+      <label for="mevsim">Mevsim:</label>
+      <select id="mevsim" required>
+        <option value="">Seçiniz</option>
+        <option value="yaz">Yaz</option>
+        <option value="kış">Kış</option>
+        <option value="ilkbahar">İlkbahar</option>
+        <option value="sonbahar">Sonbahar</option>
+      </select>
+
+      <label for="alerji">Alerji Durumu:</label>
+      <select id="alerji" required>
+        <option value="">Seçiniz</option>
+        <option value="yok">Yok</option>
+        <option value="çiçek">Çiçek</option>
+        <option value="baharat">Baharat</option>
+        <option value="alkol">Alkol</option>
+      </select>
+
+      <button type="submit">Parfüm Öner</button>
+    </form>
+
+    <div id="sonuc"></div>
+  </div>
+
+  <script src="dashboard.js"></script>
+</body>
+</html>

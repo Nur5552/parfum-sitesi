@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lena's World - Admin Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(45deg, #f5e6e0 0%, #fff5f2 50%, #fff9f7 100%);
+            min-height: 100vh;
+        }
+
+        .login-container, .admin-container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 30px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-title {
+            font-size: 1.2em;
+            color: #8B4513;
+            margin-bottom: 15px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f5e6e0;
+            color: #8B4513;
+        }
+
+        .login-form {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        button {
+            background: linear-gradient(45deg, #bc8f8f, #deb887);
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .chart-container {
+            margin-top: 20px;
+            height: 300px;
+        }
+
+        #visitorChart {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div id="loginSection" class="login-container">
+        <h2>Admin Girişi</h2>
+        <form class="login-form" id="loginForm">
+            <input type="text" id="username" placeholder="Kullanıcı Adı" required>
+            <input type="password" id="password" placeholder="Şifre" required>
+            <button type="submit">Giriş Yap</button>
+        </form>
+    </div>
+
+    <div id="adminSection" class="admin-container" style="display: none;">
+        <h1>Ziyaretçi İstatistikleri</h1>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-title">Genel İstatistikler</div>
+                <div id="generalStats"></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Tarayıcı Dağılımı</div>
+                <div id="browserStats"></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Sayfa Ziyaretleri</div>
+                <div id="pageStats"></div>
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <canvas id="visitorChart"></canvas>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-title">Son Ziyaretçiler</div>
+            <table id="recentVisitors">
+                <thead>
+                    <tr>
+                        <th>Tarih</th>
+                        <th>IP</th>
+                        <th>Sayfa</th>
+                        <th>Tarayıcı</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch('/api/admin/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    localStorage.setItem('adminToken', data.token);
+                    document.getElementById('loginSection').style.display = 'none';
+                    document.getElementById('adminSection').style.display = 'block';
+                    loadStats();
+                } else {
+                    alert('Giriş başarısız!');
+                }
+            } catch (error) {
+                console.error('Giriş hatası:', error);
+                alert('Giriş yapılırken bir hata oluştu');
+            }
+        });
+
+        // İstatistikleri yükle
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/admin/stats', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                    }
+                });
+                const stats = await response.json();
+                
+                updateGeneralStats(stats);
+                updateBrowserStats(stats.browsers);
+                updatePageStats(stats.paths);
+                updateVisitorChart(stats.hourlyStats);
+                updateRecentVisitors(stats.recentVisitors);
+            } catch (error) {
+                console.error('İstatistik yükleme hatası:', error);
+            }
+        }
+
+       
+        function updateGeneralStats(stats) {
+            document.getElementById('generalStats').innerHTML = `
+                <p>Toplam Ziyaretçi: ${stats.total}</p>
+                <p>Bugünkü Ziyaretçi: ${stats.today}</p>
+                <p>Son 1 Saatteki Ziyaretçi: ${stats.lastHour}</p>
+            `;
+        }
+
+        
+        function updateBrowserStats(browsers) {
+            const browserList = browsers.map(b => 
+                `<p>${b._id}: ${b.count} ziyaret</p>`
+            ).join('');
+            document.getElementById('browserStats').innerHTML = browserList;
+        }
+
+    
+        function updatePageStats(paths) {
+            const pathList = paths.map(p => 
+                `<p>${p._id || 'Ana Sayfa'}: ${p.count} ziyaret</p>`
+            ).join('');
+            document.getElementById('pageStats').innerHTML = pathList;
+        }
+
+        
+        function updateVisitorChart(hourlyStats) {
+            const ctx = document.getElementById('visitorChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: hourlyStats.map(stat => stat.hour),
+                    datasets: [{
+                        label: 'Saatlik Ziyaretçi',
+                        data: hourlyStats.map(stat => stat.count),
+                        borderColor: '#bc8f8f',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        
+        function updateRecentVisitors(visitors) {
+            const tbody = document.querySelector('#recentVisitors tbody');
+            tbody.innerHTML = visitors.map(v => `
+                <tr>
+                    <td>${new Date(v.timestamp).toLocaleString('tr-TR')}</td>
+                    <td>${v.ip}</td>
+                    <td>${v.path || 'Ana Sayfa'}</td>
+                    <td>${v.userAgent}</td>
+                </tr>
+            `).join('');
+        }
+
+        
+        if (localStorage.getItem('adminToken')) {
+            document.getElementById('loginSection').style.display = 'none';
+            document.getElementById('adminSection').style.display = 'block';
+            loadStats();
+        }
+    </script>
+</body>
+</html> 

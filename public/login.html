@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Giriş Yap</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        input[type="text"], input[type="password"], input[type="email"] {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .error-message {
+            color: red;
+            margin-bottom: 10px;
+            display: none;
+        }
+        .success-message {
+            color: green;
+            margin-bottom: 10px;
+            display: none;
+        }
+        .register-link, .forgot-password-link {
+            text-align: center;
+            margin-top: 10px;
+        }
+        .register-link a, .forgot-password-link a {
+            color: #4CAF50;
+            text-decoration: none;
+        }
+        .register-link a:hover, .forgot-password-link a:hover {
+            text-decoration: underline;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 400px;
+            border-radius: 4px;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: black;
+        }
+    </style>
+</head>
+<body>
+    <h2>Giriş Yap</h2>
+    <div id="error-message" class="error-message"></div>
+    <div id="success-message" class="success-message"></div>
+    <form id="loginForm" onsubmit="return handleLogin(event)">
+        <div class="form-group">
+            <label>Kullanıcı Adı:</label>
+            <input type="text" id="kullaniciAdi" required>
+        </div>
+        <div class="form-group">
+            <label>Şifre:</label>
+            <input type="password" id="sifre" required>
+        </div>
+        <button type="submit">Giriş Yap</button>
+    </form>
+
+    <div class="forgot-password-link">
+        <a href="#" onclick="openForgotPasswordModal()">Şifremi Unuttum</a>
+    </div>
+
+    <div class="register-link">
+        Hesabınız yok mu? <a href="/register.html">Kayıt Olun</a>
+    </div>
+
+    
+    <div id="forgotPasswordModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeForgotPasswordModal()">&times;</span>
+            <h3>Şifre Sıfırlama</h3>
+            <div id="modal-error-message" class="error-message"></div>
+            <div id="modal-success-message" class="success-message"></div>
+            <form id="forgotPasswordForm" onsubmit="return handleForgotPassword(event)">
+                <div class="form-group">
+                    <label>E-posta Adresiniz:</label>
+                    <input type="email" id="email" required>
+                </div>
+                <button type="submit">Şifre Sıfırlama Linki Gönder</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        async function handleLogin(event) {
+            event.preventDefault();
+            
+            const errorMessage = document.getElementById('error-message');
+            const successMessage = document.getElementById('success-message');
+            errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
+
+            const kullaniciAdi = document.getElementById('kullaniciAdi').value;
+            const sifre = document.getElementById('sifre').value;
+
+            try {
+                const response = await fetch('/api/giris', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ kullaniciAdi, sifre })
+                });
+
+                const data = await response.json();
+
+                if (data.basarili) {
+                    successMessage.textContent = 'Giriş başarılı! Yönlendiriliyorsunuz...';
+                    successMessage.style.display = 'block';
+                    setTimeout(() => {
+                        window.location.href = '/index.html';
+                    }, 1500);
+                } else {
+                    errorMessage.textContent = data.hata || 'Giriş başarısız!';
+                    errorMessage.style.display = 'block';
+                }
+            } catch (error) {
+                errorMessage.textContent = 'Bir hata oluştu. Lütfen tekrar deneyin.';
+                errorMessage.style.display = 'block';
+            }
+            return false;
+        }
+
+        
+        function openForgotPasswordModal() {
+            document.getElementById('forgotPasswordModal').style.display = 'block';
+        }
+
+        function closeForgotPasswordModal() {
+            document.getElementById('forgotPasswordModal').style.display = 'none';
+            document.getElementById('modal-error-message').style.display = 'none';
+            document.getElementById('modal-success-message').style.display = 'none';
+            document.getElementById('forgotPasswordForm').reset();
+        }
+
+        async function handleForgotPassword(event) {
+            event.preventDefault();
+            
+            const errorMessage = document.getElementById('modal-error-message');
+            const successMessage = document.getElementById('modal-success-message');
+            errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
+
+            const email = document.getElementById('email').value;
+
+            try {
+                const response = await fetch('/api/sifremi-unuttum', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email })
+                });
+
+                const data = await response.json();
+
+                if (data.basarili) {
+                    successMessage.textContent = 'Şifre sıfırlama linki e-posta adresinize gönderildi.';
+                    successMessage.style.display = 'block';
+                    setTimeout(() => {
+                        closeForgotPasswordModal();
+                    }, 3000);
+                } else {
+                    errorMessage.textContent = data.hata || 'İşlem başarısız!';
+                    errorMessage.style.display = 'block';
+                }
+            } catch (error) {
+                errorMessage.textContent = 'Bir hata oluştu. Lütfen tekrar deneyin.';
+                errorMessage.style.display = 'block';
+            }
+            return false;
+        }
+
+       
+        window.onclick = function(event) {
+            const modal = document.getElementById('forgotPasswordModal');
+            if (event.target == modal) {
+                closeForgotPasswordModal();
+            }
+        }
+    </script>
+</body>
+</html>

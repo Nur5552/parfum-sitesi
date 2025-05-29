@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Şifre Sıfırlama</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        input[type="password"] {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .error-message {
+            color: red;
+            margin-bottom: 10px;
+            display: none;
+        }
+        .success-message {
+            color: green;
+            margin-bottom: 10px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h2>Şifre Sıfırlama</h2>
+    <div id="error-message" class="error-message"></div>
+    <div id="success-message" class="success-message"></div>
+    <form id="resetPasswordForm" onsubmit="return handleResetPassword(event)">
+        <div class="form-group">
+            <label>Yeni Şifre:</label>
+            <input type="password" id="yeniSifre" required minlength="6">
+        </div>
+        <div class="form-group">
+            <label>Yeni Şifre Tekrar:</label>
+            <input type="password" id="yeniSifreTekrar" required minlength="6">
+        </div>
+        <button type="submit">Şifreyi Güncelle</button>
+    </form>
+
+    <script>
+        async function handleResetPassword(event) {
+            event.preventDefault();
+            
+            const errorMessage = document.getElementById('error-message');
+            const successMessage = document.getElementById('success-message');
+            errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
+
+            const yeniSifre = document.getElementById('yeniSifre').value;
+            const yeniSifreTekrar = document.getElementById('yeniSifreTekrar').value;
+
+           
+            if (yeniSifre !== yeniSifreTekrar) {
+                errorMessage.textContent = 'Şifreler eşleşmiyor!';
+                errorMessage.style.display = 'block';
+                return false;
+            }
+
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('token');
+
+            if (!token) {
+                errorMessage.textContent = 'Geçersiz şifre sıfırlama linki!';
+                errorMessage.style.display = 'block';
+                return false;
+            }
+
+            try {
+                const response = await fetch('/api/sifre-sifirla', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ token, yeniSifre })
+                });
+
+                const data = await response.json();
+
+                if (data.basarili) {
+                    successMessage.textContent = 'Şifreniz başarıyla güncellendi! Giriş sayfasına yönlendiriliyorsunuz...';
+                    successMessage.style.display = 'block';
+                    setTimeout(() => {
+                        window.location.href = '/login.html';
+                    }, 3000);
+                } else {
+                    errorMessage.textContent = data.hata || 'Şifre güncelleme başarısız!';
+                    errorMessage.style.display = 'block';
+                }
+            } catch (error) {
+                errorMessage.textContent = 'Bir hata oluştu. Lütfen tekrar deneyin.';
+                errorMessage.style.display = 'block';
+            }
+            return false;
+        }
+    </script>
+</body>
+</html> 

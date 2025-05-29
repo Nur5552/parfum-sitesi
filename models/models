@@ -1,0 +1,10 @@
+Yeni klasör/
+│
+├── index.js
+├── .env
+├── package.json
+├── models/
+│   └── Kullanici.js 
+├── public/
+│   ├── index.html
+│   └── style.css
